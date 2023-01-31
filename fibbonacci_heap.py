@@ -9,15 +9,60 @@ class Node:
         self.right = None   # pointer to right sibling
         self.degree = -1    # number of children
         self.mark = False   # mark if child has been removed since insertion
-
+    
 class FibonacciHeap:
     def __init__(self):
         self.min = Node()   # pointer to minimum key node
         self.numNodes = 0   # stores total number of nodes
         self.hashTable = {} # dictionary for O(1) search
-    
+        self.numTrees = 0
+#First attempt at consolidate. 
+#1. Checks the roots in the list to see if two roots have the same degree.
+#2. Merges the two trees into one root by using the  as the root with the smaller key. The larger key root
+#becomes the child.
+#3 This process is repeated until all roots in the list have different degrees.
     def __consolidate(self):
-        print("TODO")
+        A = [None] * self.numNodes
+        root = self.min
+        counter = self.numTrees
+        while counter:
+            x = root
+            root = root.right
+            d = x.degree
+            while A[d]:
+                y = A[d]
+                if x.key > y.key:
+                    x,y = y,x
+                self.link(y,x)
+                A[d] = None
+                d += 1
+            A[d] = x
+            counter -= 1
+        self.min = None
+        for i in range(len(A)):
+            if A[i]:
+                if self.min == None:
+                    self.min = A[i]
+                else:
+                    if A[i].key < self.min.key:
+                        self.min = A[i]
+
+    #Makes y the child of x. The number of marks of the node also gets updated.
+    def link(self, y, x):
+        self.removeRoot(y)
+        if y.mark == True:
+            self.numMarks -= 1
+        x.add_child(y)
+
+
+    #Remove the root from the list of roots in the heap.
+    #This will update the pointers of the remaining roots
+    #as well as the number of trees in the root list.
+    def remove_root(self,x):
+        right_of_x, left_of_x = x.right, x.left
+        right_of_x.left = left_of_x
+        left_of_x.right = right_of_x
+        self.numTrees -= 1
 
     # Cut the node from the tree and place in the root list
     def __cut(self, node, parent):
